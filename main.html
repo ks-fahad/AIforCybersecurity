@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Practical AI for Cybersecurity - Interactive Report</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Visualization & Content Choices:
+        - Overview: Text summaries from Exec Summary & Intro. Goal: Orient. Method: HTML/Tailwind.
+        - AI Advantage (Applications & Benefits): Grid of interactive cards for applications (Sec IV), summary of benefits (Sec VI). Goal: Inform/Explore. Method: HTML/Tailwind + JS for dynamic content. Chart.js bar chart for # of AI application sub-categories. Justification: Easy scan, drill-down.
+        - Evolving Threat (Sword) & Challenges: Text for AI by attackers (Sec III), interactive cards for challenges (Sec VII). Goal: Inform/Compare. Method: HTML/Tailwind + JS. Chart.js bar chart for types/number of challenges mentioned. Justification: Clear risk presentation.
+        - AI Technologies: Interactive display for ML Paradigms (Sec V table), DL/NLP, Agentic AI. Goal: Organize/Inform. Method: HTML/Tailwind + JS. Chart.js bar chart for # of techniques per ML paradigm. Justification: Interactive structured data exploration.
+        - Practical Implementation (Best Practices & Examples): Accordion for best practices (Sec VIII), filterable cards for company solutions (Sec IX table). Goal: Guide/Explore. Method: HTML/Tailwind + JS. Chart.js bar chart for company focus areas. Justification: Action-oriented, relevant examples.
+        - Future Trends: Interactive cards for trends (Sec X). Goal: Inform. Method: HTML/Tailwind + JS. Justification: Highlights future aspects.
+        - All charts use Chart.js (Canvas). NO SVG/Mermaid used. -->
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .nav-link { transition: all 0.3s ease; }
+        .nav-link.active { color: #0284c7; border-bottom-color: #0284c7; font-weight: 600; }
+        .nav-link:hover { color: #0369a1; }
+        .content-section { display: none; }
+        .content-section.active { display: block; }
+        .card { background-color: white; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); }
+        .chart-container { position: relative; width: 100%; max-width: 600px; margin-left: auto; margin-right: auto; height: 300px; max-height: 400px; }
+        @media (min-width: 768px) { .chart-container { height: 350px; max-height: 450px;} }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; }
+        .modal.active { opacity: 1; visibility: visible; }
+        .modal-content { background-color: white; padding: 2rem; border-radius: 0.5rem; max-width: 90%; width: 600px; max-height: 80vh; overflow-y: auto; }
+        .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-stone-100 text-stone-800 antialiased">
+
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <span class="font-bold text-xl text-sky-700">AI in Cybersecurity</span>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#overview" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-stone-600 hover:text-sky-700 border-b-2 border-transparent">Overview</a>
+                        <a href="#advantage" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-stone-600 hover:text-sky-700 border-b-2 border-transparent">🛡️ AI Advantage</a>
+                        <a href="#threats" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-stone-600 hover:text-sky-700 border-b-2 border-transparent">⚔️ Threats & Challenges</a>
+                        <a href="#technologies" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-stone-600 hover:text-sky-700 border-b-2 border-transparent">⚙️ Technologies</a>
+                        <a href="#implementation" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-stone-600 hover:text-sky-700 border-b-2 border-transparent">🛠️ Implementation</a>
+                        <a href="#future" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-stone-600 hover:text-sky-700 border-b-2 border-transparent">🔮 Future Outlook</a>
+                    </div>
+                </div>
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="inline-flex items-center justify-center p-2 rounded-md text-stone-500 hover:text-sky-700 hover:bg-stone-200 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-sky-500">
+                        <span class="sr-only">Open main menu</span>
+                        <svg class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                        <svg class="hidden h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </nav>
+        <div id="mobile-menu" class="md:hidden hidden">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#overview" class="nav-link block px-3 py-2 rounded-md text-base font-medium text-stone-600 hover:text-sky-700 hover:bg-stone-200">Overview</a>
+                <a href="#advantage" class="nav-link block px-3 py-2 rounded-md text-base font-medium text-stone-600 hover:text-sky-700 hover:bg-stone-200">🛡️ AI Advantage</a>
+                <a href="#threats" class="nav-link block px-3 py-2 rounded-md text-base font-medium text-stone-600 hover:text-sky-700 hover:bg-stone-200">⚔️ Threats & Challenges</a>
+                <a href="#technologies" class="nav-link block px-3 py-2 rounded-md text-base font-medium text-stone-600 hover:text-sky-700 hover:bg-stone-200">⚙️ Technologies</a>
+                <a href="#implementation" class="nav-link block px-3 py-2 rounded-md text-base font-medium text-stone-600 hover:text-sky-700 hover:bg-stone-200">🛠️ Implementation</a>
+                <a href="#future" class="nav-link block px-3 py-2 rounded-md text-base font-medium text-stone-600 hover:text-sky-700 hover:bg-stone-200">🔮 Future Outlook</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <section id="overview" class="content-section">
+            <h1 class="text-3xl font-bold text-sky-700 mb-6">Overview: AI in Cybersecurity</h1>
+            <p class="mb-4 text-lg">This section provides a foundational understanding of Artificial Intelligence (AI) in the context of cybersecurity. It explores what AI for cybersecurity entails, its evolution from a theoretical concept to a practical necessity, and its current transformative role in defending against a sophisticated and ever-increasing volume of cyber threats. The aim is to set the stage for deeper exploration into AI's applications, benefits, challenges, and future trajectory in the security landscape.</p>
+            
+            <div class="grid md:grid-cols-2 gap-6 mb-8">
+                <div class="card p-6">
+                    <h2 class="text-2xl font-semibold text-sky-600 mb-3">What is AI for Cybersecurity?</h2>
+                    <p class="text-stone-700 mb-4">AI for cybersecurity is the strategic application of AI technologies to protect systems, networks, and data. It involves automating threat detection, analyzing vast security data volumes, identifying malicious patterns, and enabling real-time incident response. Key sub-fields like Machine Learning (ML), Deep Learning (DL), and Natural Language Processing (NLP) empower systems to learn, adapt, and scale defenses effectively.</p>
+                </div>
+                <div class="card p-6">
+                    <h2 class="text-2xl font-semibold text-sky-600 mb-3">The Imperative of AI</h2>
+                    <p class="text-stone-700 mb-4">AI fundamentally reshapes cybersecurity from a reactive to a proactive and predictive paradigm. It offers unparalleled speed in data processing, enhanced threat identification accuracy, and automation of routine tasks, freeing human experts for strategic challenges. As threats grow in volume and sophistication, AI integration is no longer optional but a strategic necessity for a resilient security posture.</p>
+                     <p class="text-stone-700">The evolution from 1980s exploration to today's mainstream effectiveness is driven by computational power, vast datasets, and advanced algorithms, making AI a foundational element against modern adversaries.</p>
+                </div>
+            </div>
+             <div class="card p-6 mb-8">
+                <h2 class="text-2xl font-semibold text-sky-600 mb-3">The Dual Nature of AI: Shield and Sword</h2>
+                <p class="text-stone-700 mb-4">AI presents a powerful dichotomy in cybersecurity: it's both a formidable defense (shield) and a potent tool for attackers (sword). Understanding this duality is crucial for navigating the AI-driven security landscape.</p>
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                        <h3 class="text-xl font-semibold text-green-600 mb-2">🛡️ AI as a Shield</h3>
+                        <p class="text-stone-700">AI-powered solutions enhance threat detection, automate responses, and offer predictive analytics. They process vast data, identify anomalies, and react in real-time, far exceeding manual capabilities.</p>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold text-red-600 mb-2">⚔️ AI as a Sword</h3>
+                        <p class="text-stone-700">Adversaries use AI to craft convincing phishing emails, deepfakes, and automate vulnerability scanning. This accelerates attack speed and sophistication, shrinking "breakout times" to under an hour.</p>
+                    </div>
+                </div>
+                <p class="mt-4 text-stone-700 italic">This creates an "AI arms race," demanding continuous evolution of defensive AI against AI-powered attacks.</p>
+            </div>
+            <div class="text-center">
+                <button onclick="navigateToSection('advantage')" class="bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition duration-300">Explore AI's Defensive Power 🛡️</button>
+            </div>
+        </section>
+
+        <section id="advantage" class="content-section">
+            <h1 class="text-3xl font-bold text-sky-700 mb-6">🛡️ The AI Advantage: Powering Modern Defense</h1>
+            <p class="mb-6 text-lg">This section delves into how AI serves as a powerful shield in cybersecurity. It highlights key applications where AI significantly enhances defensive capabilities and discusses the transformative benefits that AI brings to security operations. You'll discover how AI enables faster, more accurate, and proactive defense mechanisms, ultimately strengthening an organization's resilience against cyber threats.</p>
+
+            <h2 class="text-2xl font-semibold text-sky-600 mb-4">Key Applications of AI in Defense</h2>
+            <div id="ai-applications-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            </div>
+            <div class="chart-container mb-8 p-4 card">
+                 <h3 class="text-xl font-semibold text-sky-600 mb-2 text-center">Distribution of AI Application Areas</h3>
+                <canvas id="applicationsChart"></canvas>
+            </div>
+
+            <h2 class="text-2xl font-semibold text-sky-600 mb-4">Transformative Benefits</h2>
+            <div id="ai-benefits-grid" class="grid md:grid-cols-2 gap-6 mb-8">
+            </div>
+             <p class="mb-4 p-6 card bg-sky-50 border border-sky-200 rounded-lg text-stone-700">
+                <span class="font-semibold">The Human-AI Synergy:</span> AI doesn't replace human experts; it augments their capabilities. By handling the overwhelming volume of data and routine tasks, AI acts as a "force multiplier," allowing security professionals to focus their unique cognitive skills on strategic thinking, complex problem-solving, and proactive threat hunting. This transforms the security model from labor-intensive and reactive to intelligence-driven and proactive.
+            </p>
+        </section>
+
+        <section id="threats" class="content-section">
+            <h1 class="text-3xl font-bold text-sky-700 mb-6">⚔️ The Evolving Threat: AI for Attackers & Adoption Challenges</h1>
+            <p class="mb-6 text-lg">While AI is a powerful defender, it's also a tool for adversaries, accelerating the sophistication of attacks. This section explores how attackers leverage AI (the "sword") and the significant challenges and risks organizations face when adopting AI for cybersecurity. Understanding these aspects is crucial for developing robust and resilient AI-driven security strategies.</p>
+
+            <h2 class="text-2xl font-semibold text-red-600 mb-4">AI as a Tool for Sophisticated Attackers</h2>
+            <div id="ai-attacker-tools-grid" class="grid md:grid-cols-2 gap-6 mb-8">
+            </div>
+            
+            <h2 class="text-2xl font-semibold text-amber-600 mb-4">Challenges and Risks in AI Cybersecurity Adoption</h2>
+            <div id="ai-challenges-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            </div>
+             <div class="chart-container mb-8 p-4 card">
+                <h3 class="text-xl font-semibold text-amber-600 mb-2 text-center">Key Cybersecurity AI Challenge Areas</h3>
+                <canvas id="challengesChart"></canvas>
+            </div>
+            <p class="mb-4 p-6 card bg-red-50 border border-red-200 rounded-lg text-stone-700">
+               <span class="font-semibold">Interconnected Risks:</span> Challenges like poor data quality can lead to biased models, making them more vulnerable to adversarial attacks. The "black-box" nature of some AI makes it harder to detect poisoning or attacks. Security must be holistic, covering the entire AI lifecycle—from data acquisition to ongoing operation—as a weakness in one area can be exploited elsewhere.
+            </p>
+        </section>
+
+        <section id="technologies" class="content-section">
+            <h1 class="text-3xl font-bold text-sky-700 mb-6">⚙️ Underlying AI/ML Technologies</h1>
+            <p class="mb-6 text-lg">The effectiveness of AI in cybersecurity is built upon a foundation of diverse machine learning paradigms and specialized techniques. This section explores these core technologies, including different types of machine learning, the roles of Deep Learning (DL) and Natural Language Processing (NLP), and the rise of Agentic AI. Understanding these techniques provides insight into how AI systems learn, adapt, and make decisions to protect digital assets.</p>
+
+            <h2 class="text-2xl font-semibold text-sky-600 mb-4">Machine Learning Paradigms</h2>
+            <div id="ml-paradigms-container" class="space-y-6 mb-8">
+            </div>
+            <div class="chart-container mb-8 p-4 card">
+                 <h3 class="text-xl font-semibold text-sky-600 mb-2 text-center">Techniques per ML Paradigm</h3>
+                <canvas id="mlTechniquesChart"></canvas>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6 mb-8">
+                <div class="card p-6">
+                    <h2 class="text-xl font-semibold text-sky-600 mb-3">Deep Learning (DL) & Natural Language Processing (NLP)</h2>
+                    <p class="text-stone-700 mb-2"><span class="font-semibold">Deep Learning:</span> A subset of ML, excels at complex tasks like sophisticated malware analysis and zero-day exploit detection by processing vast, unstructured data to find subtle patterns.</p>
+                    <p class="text-stone-700"><span class="font-semibold">Natural Language Processing:</span> Crucial for analyzing text (e.g., emails for phishing detection), enabling AI to understand context, extract meaning, and identify malicious intent. Facebook uses NLP for content moderation.</p>
+                </div>
+                <div class="card p-6">
+                    <h2 class="text-xl font-semibold text-sky-600 mb-3">Agentic AI: Autonomous Decision-Making</h2>
+                    <p class="text-stone-700">Represents a significant advancement, acting as an autonomous decision-maker. It orchestrates threat detection, prioritization, and remediation across complex environments without constant human intervention. Key components include continuous data collection, behavioral analysis, autonomous response (e.g., isolating systems), and adaptive learning. Agentic AI is expected to accelerate SOC automation, working alongside humans.</p>
+                </div>
+            </div>
+            <p class="mb-4 p-6 card bg-sky-50 border border-sky-200 rounded-lg text-stone-700">
+                <span class="font-semibold">Multi-Modal Approach:</span> No single ML paradigm solves all cybersecurity needs. Practical AI solutions intelligently integrate multiple approaches (e.g., unsupervised learning for novel anomalies, supervised for known threats, reinforcement for automated responses). This layered, holistic strategy maximizes AI benefits for a robust, adaptable defense.
+            </p>
+        </section>
+
+        <section id="implementation" class="content-section">
+            <h1 class="text-3xl font-bold text-sky-700 mb-6">🛠️ Practical Implementation: Best Practices & Real-World Solutions</h1>
+            <p class="mb-6 text-lg">Effectively deploying AI in cybersecurity requires more than just technology; it demands a strategic approach encompassing best practices across the AI lifecycle and learning from real-world applications. This section outlines key strategies for successful AI adoption, from ensuring data quality to fostering human-AI collaboration, and showcases leading solutions and case studies that illustrate AI's impact in practice.</p>
+
+            <h2 class="text-2xl font-semibold text-sky-600 mb-4">Strategic Implementation and Best Practices</h2>
+            <div id="best-practices-accordion" class="space-y-3 mb-8">
+            </div>
+            
+            <p class="mb-8 p-6 card bg-sky-50 border border-sky-200 rounded-lg text-stone-700">
+                <span class="font-semibold">Security by Design:</span> These best practices are proactive, not reactive. Security must be foundational, woven into AI system development from the outset. This minimizes vulnerabilities, ensures compliance, builds trust, and requires a cultural shift where security is a shared responsibility across AI development, operations, and leadership. Securing AI itself is as critical as using AI for security.
+            </p>
+
+            <h2 class="text-2xl font-semibold text-sky-600 mb-4">Leading Solutions and Real-World Examples</h2>
+            <p class="mb-4 text-stone-700">Numerous companies are at the forefront of applying AI to cybersecurity. The table below highlights some prominent players and their AI-powered solutions. Exploring these examples can provide insights into the diverse applications and commercial maturity of AI in this field.</p>
+            <div class="flex flex-wrap gap-2 mb-4" id="company-filter-buttons">
+                 <button class="company-filter-btn bg-sky-500 text-white px-3 py-1 rounded-md text-sm" data-filter="all">All</button>
+            </div>
+            <div id="company-solutions-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            </div>
+            <div class="chart-container mb-8 p-4 card">
+                <h3 class="text-xl font-semibold text-sky-600 mb-2 text-center">Focus Areas of Leading AI Cybersecurity Solutions</h3>
+                <canvas id="companyFocusChart"></canvas>
+            </div>
+
+            <h3 class="text-xl font-semibold text-sky-600 mb-3">Specific Case Studies</h3>
+            <div id="case-studies-container" class="space-y-4">
+            </div>
+             <p class="mt-6 p-6 card bg-sky-50 border border-sky-200 rounded-lg text-stone-700">
+                <span class="font-semibold">Market Maturity:</span> The variety of AI solutions shows AI is deeply embedded in commercial cybersecurity. This confirms "practicality" is about *how* to adopt, not *if*. Specialization (IoT, insider threats) indicates a maturing market. Organizations must select tools that fit their unique needs and integrate well, moving beyond generic claims to proven applications.
+            </p>
+        </section>
+
+        <section id="future" class="content-section">
+            <h1 class="text-3xl font-bold text-sky-700 mb-6">🔮 Future Outlook: Emerging Trends in AI Cybersecurity</h1>
+            <p class="mb-6 text-lg">The evolution of AI in cybersecurity is continuous, with new trends and advancements constantly shaping the future of digital defense. This section explores what's on the horizon, from more sophisticated predictive capabilities and the role of generative AI to the development of quantum-resilient algorithms and new research frontiers. Understanding these trends is key to anticipating future challenges and opportunities in the AI-driven security landscape.</p>
+
+            <div id="future-trends-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            </div>
+             <p class="mb-4 p-6 card bg-sky-50 border border-sky-200 rounded-lg text-stone-700">
+                <span class="font-semibold">Convergence for Resilience:</span> Trends like AI-driven Zero Trust, federated learning, cloud AI, and unified security ecosystems are converging towards a holistic vision. The complexity of AI-driven threats and distributed IT environments demands a shift from perimeter-based models. Zero Trust offers the "never trust, always verify" principle, cloud provides scalable infrastructure, and AI acts as the intelligence layer. This convergence is a strategic imperative for building resilient, adaptive, and future-proof security.
+            </p>
+
+            <div class="mt-8 text-center card p-6">
+                <h2 class="text-2xl font-semibold text-sky-600 mb-3">The Strategic Imperative</h2>
+                <p class="text-stone-700 mb-4">AI is indispensable in modern cybersecurity. Its ability to automate, accelerate, and enhance threat detection and response is crucial. While challenges like adversarial attacks and bias exist, a "security by design" philosophy, embedding security throughout the AI lifecycle, is vital.</p>
+                <p class="text-stone-700 font-semibold">Practical AI adoption is a strategic imperative for organizational resilience, demanding continuous investment, robust governance, and fostering human-AI collaboration to build secure, adaptive digital environments.</p>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-stone-800 text-stone-300 py-8 text-center">
+        <p>&copy; 2024 Interactive Report on Practical AI for Cybersecurity. Content based on the provided research report.</p>
+    </footer>
+
+    <div id="details-modal" class="modal">
+        <div class="modal-content">
+            <h3 id="modal-title" class="text-2xl font-semibold text-sky-700 mb-4">Details</h3>
+            <div id="modal-body" class="text-stone-700 space-y-2"></div>
+            <button id="modal-close-button" class="mt-6 bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Close</button>
+        </div>
+    </div>
+
+<script>
+    const reportData = {
+        applications: [
+            { id: 'anomaly', name: 'Anomaly Detection', icon: '📊', description: 'AI scans vast network data, logs, and traffic in real-time to identify anomalies indicating a breach, catching threats legacy systems might miss by recognizing subtle deviations from normal behavior.' },
+            { id: 'malware', name: 'Malware & Ransomware Detection', icon: '🦠', description: 'Deep learning detects polymorphic malware and zero-day exploits. AI analyzes malware behavior to stop ransomware before encryption, minimizing downtime.' },
+            { id: 'phishing', name: 'Phishing & Social Engineering Detection', icon: '🎣', description: 'NLP and ML scan email content, user behavior, and contextual clues to block sophisticated phishing. Google\'s Gmail uses ML for this extensively.' },
+            { id: 'ids', name: 'Intrusion Detection Systems (IDS)', icon: '🛡️', description: 'AI-powered IDSs monitor network traffic, analyze data for unauthorized access or malicious actions, and alert teams, improving accuracy and reducing false positives.' },
+            { id: 'zeroday', name: 'Zero-Day Attack Mitigation', icon: '💥', description: 'Unsupervised ML identifies new attack patterns and mitigates zero-day attacks by recognizing deviations from normal behavior without prior signatures.' },
+            { id: 'vulnerability', name: 'Vulnerability Management', icon: '🔍', description: 'AI identifies and prioritizes vulnerabilities and threats needing immediate attention, predicting potential exploits and guiding remediation efforts based on risk.' },
+            { id: 'incident', name: 'Incident Response & Automation', icon: '⏱️', description: 'AI correlates useful events across data sources, saving time. AI systems can initiate predefined actions (isolate systems, block IPs) in seconds, limiting attacker window and downtime.' },
+            { id: 'iam', name: 'Identity & Access Management (IAM)', icon: '👤', description: 'AI understands user sign-in patterns, surfaces anomalies, and can force 2FA or password resets. Powers facial/fingerprint recognition, etc. Okta uses AI for this.' },
+            { id: 'datacloud', name: 'Data & Cloud Security', icon: '☁️', description: 'AI accelerates data security by identifying/labeling sensitive data and detecting unauthorized data movement. In cloud security, AI provides comprehensive risk views. Lacework is an example.' },
+            { id: 'threathunt', name: 'Threat Hunting', icon: '🎯', description: 'AI highlights high-risk behaviors, narrowing investigation areas for analysts. ML automates threat hunting for APTs.' },
+            { id: 'soc', name: 'SOC Support', icon: '📈', description: 'AI speeds threat ID for SOC teams by correlating data faster, letting analysts focus on priority issues. Microsoft CoPilot assists analysts.' },
+            { id: 'pentest', name: 'Automated Penetration Testing', icon: '🛠️', description: 'AI automates penetration testing to identify vulnerabilities and predict future attackers. Synack combines AI with ethical hacking.' },
+            { id: 'training', name: 'Security Awareness Training', icon: '🎓', description: 'KnowBe4 uses AI to customize security training based on employee risk/behavior, improving awareness and reducing phishing risks.' }
+        ],
+        benefits: [
+            { name: 'Enhanced Speed and Automation', description: 'AI processes massive data, detects anomalies in real-time, and initiates responses far faster than humans. Automates routine tasks like log analysis and low-level alerts.', points: ['Critical for <1 hour breakout times.', 'Frees security teams for complex threats.','Accelerates incident response and containment.'] },
+            { name: 'Improved Accuracy and Reduced False Positives', description: 'ML models continuously learn, enhancing threat detection accuracy and significantly reducing false positives that drain resources. Deep learning detects sophisticated threats like polymorphic malware.', points:['Analyzes subtle nuances of behavior.','Identifies smallest deviations.'] },
+            { name: 'Predictive Capabilities and Proactive Defense', description: 'AI analyzes historical data and trends to forecast vulnerabilities and predict attack vectors, shifting cybersecurity from reactive to proactive. Enables pre-emptive remediation.', points:['Anticipates and mitigates attacks.','Prioritizes reinforcement areas.'] },
+            { name: 'Scalability and Efficiency', description: 'AI solutions scale with organizational growth, securing expanding IT infrastructures and handling increasing threat volumes. Reduces manual work and accelerates operations.', points:['More efficient and cost-effective security.','Handles complexity effectively.'] }
+        ],
+        attackerTools: [
+            { name: 'Convincing Fakes', description: 'AI crafts highly realistic phishing emails, chat messages, and voice deepfakes, mimicking trusted contacts to increase social engineering success.' },
+            { name: 'Automated Vulnerability Scanning', description: 'AI tools scan for system vulnerabilities at unprecedented scale, giving attackers speed and precision in targeting networks.' },
+            { name: 'Automated Vulnerability Discovery', description: 'Malicious actors use AI to automatically find vulnerabilities in systems/networks by analyzing traffic for weak spots like unfixed bugs or misconfigured firewalls.' },
+            { name: 'Adaptive Attack Strategies', description: 'ML algorithms analyze defenses and dynamically adapt attack methods in real-time to exploit identified vulnerabilities.' },
+            { name: 'AI-Generated Voice Synthesis (Vishing)', description: 'Enables realistic impersonation of reputable individuals/organizations for phone phishing.' },
+            { name: 'Automated Data Scraping (Doxing)', description: 'AI automates scraping public data to compile detailed dossiers for malicious purposes.' }
+        ],
+        challenges: [
+            { name: 'Adversarial Attacks', description: 'Attackers subtly manipulate AI inputs, causing misinterpretation (e.g., autonomous vehicle misreading signs). Undetectable by humans.' },
+            { name: 'Data Poisoning', description: 'Malicious actors inject corrupted data into AI training sets, altering model behavior, reducing accuracy, or adding vulnerabilities (e.g., email filter marking phishing as safe).' },
+            { name: 'Bias in AI', description: 'Biases from developer assumptions or training data can lead to false positives/negatives. Attackers can exploit these for unfair decisions.' },
+            { name: 'Explainability ("Black-Box")', description: 'Complex AI models are often opaque, making it hard for humans to understand, trust, or debug their decisions, impeding compliance and critical decision-making.' },
+            { name: 'AI Model Security (Theft)', description: 'Valuable AI models can be stolen via side-channel attacks, API exploitation, etc., allowing illicit deployment or reverse-engineering for vulnerabilities.' },
+            { name: 'Autonomy Exploitation', description: 'Autonomous AI can be manipulated (hijacked, algorithms modified) to make harmful decisions (e.g., drones altering flight paths).' },
+            { name: 'Supply Chain Vulnerabilities', description: 'AI systems rely on extensive supply chains (data, training environments, hardware). Vulnerabilities can be introduced at any stage.' },
+            { name: 'Data Quality & Labeling', description: 'High-quality, accurately labeled data is crucial but hard to acquire. Inconsistent/erroneous data compromises AI performance.' },
+            { name: 'AI Used by Hackers (Reiteration)', description: 'The offensive use of AI (phishing, vishing, doxing, automated exploits) directly challenges defensive AI, requiring constant evolution.' }
+        ],
+        mlParadigms: [
+            { name: 'Supervised Learning', definition: 'Uses labeled datasets (input and desired output specified) to train algorithms to classify data or predict outcomes.', useCases: 'Identifying network risks (scanning, spoofing), predicting DDoS attacks, spam/malware detection.', techniques: ['Adaptive Boosting', 'Linear Regression', 'Logistic Regression', 'Naïve Bayes', 'Neural Networks', 'Random Forest', 'SVM'] },
+            { name: 'Unsupervised Learning', definition: 'Analyzes and clusters unlabeled datasets (network traffic logs, user behavior) to find hidden patterns or groupings without human intervention. Common for deep learning.', useCases: 'Detecting unusual behavior, identifying new attack patterns, mitigating zero-day attacks, anomaly detection.', techniques: ['K-means clustering', 'Neural Networks', 'PCA', 'Probabilistic Clustering', 'SVD'] },
+            { name: 'Reinforcement Learning', definition: 'Algorithms learn via trial and error, receiving positive/negative cues (rewards/penalties). Seeks affirmation, avoids penalties; good for multi-step processes with clear rules.', useCases: 'Adversarial simulation, autonomous intrusion detection, securing cyber-physical systems, adaptive DDoS defenses.', techniques: ['Deep Deterministic Policy Gradient (DDPG)', 'Deep Q Network (DQN)'] },
+            { name: 'Semi-supervised Learning', definition: 'Hybrid approach using a small amount of labeled data from a larger, unlabeled dataset for classification/feature extraction. Useful when labeled data is scarce.', useCases: 'Robust adversarial neural networks, malicious/benign bot identification, malware/ransomware detection.', techniques: ['Consistency Regularization', 'Label Propagation', 'Pseudo-labeling', 'Self-training'] }
+        ],
+        bestPractices: [
+            { name: 'Ensuring Data Quality and Privacy', description: 'Implement rigorous data validation, real-time monitoring of pipelines, encryption, anonymization (differential privacy), and access controls. Adhere to GDPR/CCPA.' },
+            { name: 'Seamless Integration with Existing Security Systems', description: 'Integrate AI tools with firewalls, IDS, SIEM via APIs and standardized protocols. Test comprehensively to ensure AI complements existing operations.' },
+            { name: 'Human-AI Collaboration and Workforce Skilling', description: 'Leverage AI for data processing and human oversight for context/ethics. AI as an assistant. Continuous learning, AI champions, and training are crucial.' },
+            { name: 'Robust Governance and Risk Management Frameworks', description: 'Adopt AI governance with risk assessment, controls for data/model transparency/bias. Monitor "shadow AI." Embed cybersecurity in the AI lifecycle.' },
+            { name: 'Continuous Testing and Model Updates', description: 'Regularly test and update AI models. Monitor performance to prevent "model drift." Retrain with new data. Conduct adversarial testing to harden models.' },
+            { name: 'Adopting a Zero Trust Security Model', description: 'No entity is inherently trusted; continuous verification and strict access control. AI enhances Zero Trust with dynamic context/behavior assessment for granular access.' },
+            { name: 'Federated Learning for Secure AI Training', description: 'Train models on decentralized data without centralizing sensitive info, reducing breach risks and maintaining anonymity. Facilitates joint defense/intel sharing.' }
+        ],
+        companies: [
+            { name: 'Darktrace', focus: 'Real-time Threat Detection & Analysis', tech: 'Machine Learning, Anomaly Detection', impact: 'Faster threat detection, reduced false positives.', category: 'Detection' },
+            { name: 'Barracuda Networks', focus: 'Phishing Detection & Prevention', tech: 'NLP, Machine Learning', impact: 'Protects against data breaches from phishing.', category: 'Prevention' },
+            { name: 'CrowdStrike', focus: 'Malware & Ransomware Protection', tech: 'Behavioral Analysis, Machine Learning', impact: 'Prevents malware, reduces ransomware impact.', category: 'Protection' },
+            { name: 'Cisco Stealthwatch', focus: 'Network Traffic Analysis', tech: 'Machine Learning, Data Analytics', impact: 'Real-time network intrusion detection.', category: 'Detection' },
+            { name: 'Mastercard', focus: 'Fraud Detection', tech: 'Anomaly Detection, Predictive Analytics', impact: 'Reduces fraud losses, enhances customer trust.', category: 'Detection' },
+            { name: 'Palo Alto Networks Cortex', focus: 'Security Automation', tech: 'Machine Learning, Automated Threat Response', impact: 'Speeds security operations, minimizes human error.', category: 'Automation' },
+            { name: 'Okta', focus: 'Identity & Access Management (IAM)', tech: 'Behavioral Analytics, Biometrics', impact: 'Strengthens authentication, reduces identity attacks.', category: 'IAM' },
+            { name: 'Exabeam', focus: 'Insider Threat Detection', tech: 'UEBA, Machine Learning', impact: 'Prevents data leaks, improves internal security.', category: 'Detection' },
+            { name: 'Qualys', focus: 'Vulnerability Management', tech: 'Predictive Analytics, AI Risk Assessment', impact: 'Reduces attack surfaces, streamlines patching.', category: 'Management' },
+            { name: 'SentinelOne', focus: 'Endpoint Protection', tech: 'Machine Learning, EDR', impact: 'Improves endpoint security, reduces response time.', category: 'Protection' },
+            { name: 'Lacework', focus: 'Cloud Security', tech: 'AI-Driven Threat Monitoring, Configuration Analysis', impact: 'Prevents cloud data breaches, enhances compliance.', category: 'Cloud' },
+            { name: 'Synack', focus: 'Automated Penetration Testing', tech: 'Machine Learning, Attack Simulation', impact: 'Strengthens defenses, uncovers weaknesses.', category: 'Testing' }
+        ],
+        caseStudies: [
+            { name: 'IBM Security QRadar SIEM', scenario: 'A major Gulf-based bank struggled with excessive false positives from its old SIEM.', solution: 'Implemented QRadar SIEM with AI/ML.', outcome: 'Reduced alert volume and false positives, improved response times, and lessened analyst fatigue.' },
+            { name: 'Google\'s Gmail Phishing Detection', scenario: 'Gmail (1.5B+ users) faces millions of daily phishing attempts.', solution: 'Employs ML models trained on extensive email characteristics (content, sender, metadata).', outcome: 'Effectively counters deceptive emails, enhancing user security against phishing.' },
+            { name: 'Capital One', scenario: 'Large financial institution needing to protect sensitive data.', solution: 'Integrated AI tools like AWS Macie for automated data discovery/classification/protection and ML-based threat detection/response.', outcome: 'Automated system isolates threats, blocks suspicious activity, notifies team; significantly reduced response times and damages.' },
+            { name: 'Facebook Social Media Monitoring', scenario: 'Needs to detect harmful content across its platform.', solution: 'Uses NLP to scan posts/comments for keywords, sentiment analysis for emotional tone, advanced models for context, and topic modeling for trends.', outcome: 'Identifies deviations in language/behavior, signaling potential threats and coordinated campaigns.' }
+        ],
+        futureTrends: [
+            { name: 'Predictive Analytics & Automated Threat Hunting', description: 'AI will increasingly identify vulnerabilities and anticipate attack vectors pre-exploitation, shifting to proactive defense. ML will automate threat hunting for APTs.' },
+            { name: 'Generative AI for Cyber Defense', description: 'GenAI (advanced language models) will simulate attacks, create realistic synthetic training data (preserving privacy), and strengthen protection techniques for robust model training.' },
+            { name: 'AI-Driven Zero Trust Architecture', description: 'AI will enhance Zero Trust by dynamically assessing context/behavior for granular, adaptive access constraints, moving beyond static rules for continuous verification.' },
+            { name: 'Federated Learning for Privacy-Preserving Security', description: 'Train models on decentralized data without centralizing sensitive info, reducing breach risks, maintaining anonymity, and enabling collaborative defense/intel sharing.' },
+            { name: 'Quantum-Resilient AI Algorithms', description: 'As quantum computing threatens current cryptography, AI will merge with quantum-resistant cryptography to develop algorithms protecting data from future quantum threats.' },
+            { name: 'Unified Security Ecosystems & Cloud AI', description: 'Push for centralizing security tech into integrated AI platforms ("single pane of glass"). Cloud adoption will accelerate for resource-intensive AI (LLMs, GenAI).' },
+            { name: 'Human-Machine Teaming in SecOps', description: 'AI intelligent agents will work alongside human experts, applying complex reasoning to identify flaws, detect attacks, attribute, and respond. Humans remain crucial for oversight.' },
+            { name: 'New Research Areas (e.g., ORNL\'s CAISER)', description: 'Dedicated centers will research AI risks (cybersecurity, biometrics, etc.), vulnerabilities, exploitation, and misuses to inform reliability and robustness needs for critical infrastructure.' }
+        ]
+    };
+
+    const charts = {};
+
+    function createBarChart(canvasId, label, labels, data, backgroundColor, borderColor) {
+        const ctx = document.getElementById(canvasId).getContext('2d');
+        if (charts[canvasId]) {
+            charts[canvasId].destroy();
+        }
+        charts[canvasId] = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels.map(l => wrapLabel(l, 16)),
+                datasets: [{
+                    label: label,
+                    data: data,
+                    backgroundColor: backgroundColor,
+                    borderColor: borderColor,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, ticks: { precision: 0 } },
+                    x: { ticks: { callback: function(value) { return this.getLabelForValue(value); } } }
+                },
+                plugins: { legend: { display: true } }
+            }
+        });
+    }
+    
+    function wrapLabel(label, maxLength) {
+        if (label.length <= maxLength) return label;
+        const words = label.split(' ');
+        let currentLine = '';
+        const lines = [];
+        for (const word of words) {
+            if ((currentLine + word).length > maxLength) {
+                lines.push(currentLine.trim());
+                currentLine = '';
+            }
+            currentLine += word + ' ';
+        }
+        lines.push(currentLine.trim());
+        return lines;
+    }
+
+    function populateApplications() {
+        const grid = document.getElementById('ai-applications-grid');
+        grid.innerHTML = '';
+        reportData.applications.forEach(app => {
+            const card = document.createElement('div');
+            card.className = 'card p-4 cursor-pointer';
+            card.innerHTML = `<h3 class="text-lg font-semibold text-sky-700 mb-2">${app.icon} ${app.name}</h3><p class="text-sm text-stone-600">${app.description.substring(0,100)}...</p>`;
+            card.onclick = () => showModal(app.name, `<p>${app.description}</p>`);
+            grid.appendChild(card);
+        });
+    }
+    
+    function populateBenefits() {
+        const grid = document.getElementById('ai-benefits-grid');
+        grid.innerHTML = '';
+        reportData.benefits.forEach(benefit => {
+            const card = document.createElement('div');
+            card.className = 'card p-6';
+            let pointsHTML = '<ul class="list-disc list-inside mt-2 space-y-1 text-sm text-stone-600">';
+            benefit.points.forEach(point => {
+                pointsHTML += `<li>${point}</li>`;
+            });
+            pointsHTML += '</ul>';
+            card.innerHTML = `<h3 class="text-xl font-semibold text-green-600 mb-2">${benefit.name}</h3><p class="text-stone-700 mb-2">${benefit.description}</p>${pointsHTML}`;
+            grid.appendChild(card);
+        });
+    }
+
+    function populateAttackerTools() {
+        const grid = document.getElementById('ai-attacker-tools-grid');
+        grid.innerHTML = '';
+        reportData.attackerTools.forEach(tool => {
+            const card = document.createElement('div');
+            card.className = 'card p-4';
+            card.innerHTML = `<h3 class="text-lg font-semibold text-red-700 mb-2">${tool.name}</h3><p class="text-sm text-stone-600">${tool.description}</p>`;
+            grid.appendChild(card);
+        });
+    }
+
+    function populateChallenges() {
+        const grid = document.getElementById('ai-challenges-grid');
+        grid.innerHTML = '';
+        reportData.challenges.forEach(challenge => {
+            const card = document.createElement('div');
+            card.className = 'card p-4 cursor-pointer';
+            card.innerHTML = `<h3 class="text-lg font-semibold text-amber-700 mb-2">${challenge.name}</h3><p class="text-sm text-stone-600">${challenge.description.substring(0,100)}...</p>`;
+            card.onclick = () => showModal(challenge.name, `<p>${challenge.description}</p>`);
+            grid.appendChild(card);
+        });
+    }
+
+    function populateMLParadigms() {
+        const container = document.getElementById('ml-paradigms-container');
+        container.innerHTML = '';
+        reportData.mlParadigms.forEach(paradigm => {
+            const div = document.createElement('div');
+            div.className = 'card p-6';
+            let techniquesHTML = '<ul class="list-disc list-inside mt-2 space-y-1 text-sm text-stone-600">';
+            paradigm.techniques.forEach(tech => {
+                techniquesHTML += `<li>${tech}</li>`;
+            });
+            techniquesHTML += '</ul>';
+            div.innerHTML = `
+                <h3 class="text-xl font-semibold text-sky-700 mb-2">${paradigm.name}</h3>
+                <p class="text-stone-700 mb-1"><strong class="font-medium">Definition:</strong> ${paradigm.definition}</p>
+                <p class="text-stone-700 mb-1"><strong class="font-medium">Use Cases:</strong> ${paradigm.useCases}</p>
+                <p class="text-stone-700"><strong class="font-medium">Techniques:</strong></p>
+                ${techniquesHTML}
+            `;
+            container.appendChild(div);
+        });
+    }
+    
+    function populateBestPractices() {
+        const accordionContainer = document.getElementById('best-practices-accordion');
+        accordionContainer.innerHTML = '';
+        reportData.bestPractices.forEach((practice, index) => {
+            const item = document.createElement('div');
+            item.className = 'card';
+            item.innerHTML = `
+                <button class="accordion-button w-full text-left p-4 font-semibold text-sky-700 hover:bg-sky-50 focus:outline-none flex justify-between items-center">
+                    <span>${practice.name}</span>
+                    <svg class="w-5 h-5 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <div class="accordion-content px-4 pb-4 text-stone-600 text-sm">
+                    <p>${practice.description}</p>
+                </div>
+            `;
+            accordionContainer.appendChild(item);
+        });
+
+        document.querySelectorAll('.accordion-button').forEach(button => {
+            button.addEventListener('click', () => {
+                const content = button.nextElementSibling;
+                const icon = button.querySelector('svg');
+                button.parentElement.parentElement.querySelectorAll('.accordion-content').forEach(otherContent => {
+                    if (otherContent !== content && otherContent.style.maxHeight) {
+                        otherContent.style.maxHeight = null;
+                        otherContent.previousElementSibling.querySelector('svg').classList.remove('rotate-180');
+                    }
+                });
+                if (content.style.maxHeight) {
+                    content.style.maxHeight = null;
+                    icon.classList.remove('rotate-180');
+                } else {
+                    content.style.maxHeight = content.scrollHeight + "px";
+                    icon.classList.add('rotate-180');
+                }
+            });
+        });
+    }
+    
+    function getCompanyCategories() {
+        const categories = new Set(reportData.companies.map(c => c.category));
+        return ['all', ...Array.from(categories).sort()];
+    }
+
+    function populateCompanyFilters() {
+        const filterContainer = document.getElementById('company-filter-buttons');
+        const categories = getCompanyCategories();
+        categories.slice(1).forEach(category => { // Skip 'all' as it's already there
+            const button = document.createElement('button');
+            button.className = 'company-filter-btn bg-stone-200 hover:bg-sky-500 hover:text-white text-stone-700 px-3 py-1 rounded-md text-sm';
+            button.textContent = category;
+            button.dataset.filter = category;
+            filterContainer.appendChild(button);
+        });
+
+        document.querySelectorAll('.company-filter-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                filterCompanies(e.target.dataset.filter);
+                document.querySelectorAll('.company-filter-btn').forEach(btn => {
+                    btn.classList.remove('bg-sky-500', 'text-white');
+                    btn.classList.add('bg-stone-200', 'text-stone-700');
+                });
+                e.target.classList.add('bg-sky-500', 'text-white');
+                e.target.classList.remove('bg-stone-200', 'text-stone-700');
+            });
+        });
+    }
+    
+    function filterCompanies(category) {
+        const grid = document.getElementById('company-solutions-grid');
+        grid.innerHTML = '';
+        const filteredCompanies = category === 'all' ? reportData.companies : reportData.companies.filter(c => c.category === category);
+        
+        filteredCompanies.forEach(company => {
+            const card = document.createElement('div');
+            card.className = 'card p-4';
+            card.innerHTML = `
+                <h3 class="text-lg font-semibold text-sky-700 mb-1">${company.name}</h3>
+                <p class="text-sm text-stone-600 mb-1"><strong class="font-medium">Focus:</strong> ${company.focus}</p>
+                <p class="text-sm text-stone-600 mb-1"><strong class="font-medium">Tech:</strong> ${company.tech}</p>
+                <p class="text-sm text-stone-600"><strong class="font-medium">Impact:</strong> ${company.impact}</p>
+            `;
+            grid.appendChild(card);
+        });
+    }
+
+    function populateCaseStudies() {
+        const container = document.getElementById('case-studies-container');
+        container.innerHTML = '';
+        reportData.caseStudies.forEach(study => {
+            const card = document.createElement('div');
+            card.className = 'card p-6';
+            card.innerHTML = `
+                <h4 class="text-lg font-semibold text-sky-700 mb-2">${study.name}</h4>
+                <p class="text-sm text-stone-600 mb-1"><strong class="font-medium">Scenario:</strong> ${study.scenario}</p>
+                <p class="text-sm text-stone-600 mb-1"><strong class="font-medium">Solution:</strong> ${study.solution}</p>
+                <p class="text-sm text-stone-600"><strong class="font-medium">Outcome:</strong> ${study.outcome}</p>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    function populateFutureTrends() {
+        const grid = document.getElementById('future-trends-grid');
+        grid.innerHTML = '';
+        reportData.futureTrends.forEach(trend => {
+            const card = document.createElement('div');
+            card.className = 'card p-4';
+            card.innerHTML = `<h3 class="text-lg font-semibold text-sky-700 mb-2">${trend.name}</h3><p class="text-sm text-stone-600">${trend.description}</p>`;
+            grid.appendChild(card);
+        });
+    }
+
+    function showModal(title, bodyHtml) {
+        document.getElementById('modal-title').textContent = title;
+        document.getElementById('modal-body').innerHTML = bodyHtml;
+        document.getElementById('details-modal').classList.add('active');
+    }
+
+    function closeModal() {
+        document.getElementById('details-modal').classList.remove('active');
+    }
+
+    function navigateToSection(sectionId) {
+        document.querySelectorAll('.content-section').forEach(section => {
+            section.classList.remove('active');
+        });
+        document.getElementById(sectionId).classList.add('active');
+
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href') === '#' + sectionId) {
+                link.classList.add('active');
+            }
+        });
+        window.scrollTo(0,0); 
+        
+        if (sectionId === 'advantage') {
+            const appCounts = {};
+            reportData.applications.forEach(app => {
+                const category = app.name.split(' ')[0]; // Simple categorization
+                appCounts[category] = (appCounts[category] || 0) + 1;
+            });
+            createBarChart('applicationsChart', '# of Application Sub-types', Object.keys(appCounts), Object.values(appCounts), 'rgba(56, 189, 248, 0.6)', 'rgba(56, 189, 248, 1)');
+        } else if (sectionId === 'threats') {
+            const challengeCounts = {};
+             reportData.challenges.forEach(ch => {
+                // Simple categorization by first word of challenge name, or a broader category if possible
+                let category = "General";
+                if (ch.name.toLowerCase().includes("adversarial") || ch.name.toLowerCase().includes("poisoning") || ch.name.toLowerCase().includes("theft") || ch.name.toLowerCase().includes("exploitation")) category = "Attack/Exploit";
+                else if (ch.name.toLowerCase().includes("bias") || ch.name.toLowerCase().includes("explainability")) category = "Model Integrity";
+                else if (ch.name.toLowerCase().includes("data") || ch.name.toLowerCase().includes("supply chain")) category = "Data/Infrastructure";
+                
+                challengeCounts[category] = (challengeCounts[category] || 0) + 1;
+            });
+            createBarChart('challengesChart', '# of Challenges by Area', Object.keys(challengeCounts), Object.values(challengeCounts), 'rgba(245, 158, 11, 0.6)', 'rgba(245, 158, 11, 1)');
+        } else if (sectionId === 'technologies') {
+            const techCounts = reportData.mlParadigms.map(p => p.techniques.length);
+            const techLabels = reportData.mlParadigms.map(p => p.name);
+            createBarChart('mlTechniquesChart', '# of Techniques', techLabels, techCounts, 'rgba(20, 184, 166, 0.6)', 'rgba(20, 184, 166, 1)');
+        } else if (sectionId === 'implementation') {
+            const companyFocusCounts = {};
+            reportData.companies.forEach(c => {
+                companyFocusCounts[c.category] = (companyFocusCounts[c.category] || 0) + 1;
+            });
+            createBarChart('companyFocusChart', '# of Companies by Focus Area', Object.keys(companyFocusCounts), Object.values(companyFocusCounts), 'rgba(139, 92, 246, 0.6)', 'rgba(139, 92, 246, 1)');
+        }
+         if (document.getElementById('mobile-menu').classList.contains('hidden') === false) {
+            document.getElementById('mobile-menu').classList.add('hidden');
+            document.querySelector('#mobile-menu-button svg.block').classList.remove('hidden');
+            document.querySelector('#mobile-menu-button svg.hidden').classList.add('hidden');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        populateApplications();
+        populateBenefits();
+        populateAttackerTools();
+        populateChallenges();
+        populateMLParadigms();
+        populateBestPractices();
+        populateCompanyFilters();
+        filterCompanies('all');
+        populateCaseStudies();
+        populateFutureTrends();
+
+        document.getElementById('modal-close-button').addEventListener('click', closeModal);
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && document.getElementById('details-modal').classList.contains('active')) {
+                closeModal();
+            }
+        });
+        
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const sectionId = e.target.getAttribute('href').substring(1);
+                navigateToSection(sectionId);
+            });
+        });
+
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+            mobileMenuButton.querySelectorAll('svg').forEach(svg => svg.classList.toggle('hidden'));
+        });
+
+        if (window.location.hash) {
+            navigateToSection(window.location.hash.substring(1));
+        } else {
+            navigateToSection('overview');
+        }
+    });
+</script>
+</body>
+</html>
